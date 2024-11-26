@@ -5,50 +5,38 @@ using UnityEngine.UI;
 
 public class Fish : MonoBehaviour
 {
-    bool playerInside;
-    float tugs=0;
-    [SerializeField] float neededTugs;
+    public bool isRoped = false;
+    private Movement movement;
     [SerializeField] int score;
-
-    [SerializeField] Slider tugBar;
-
+    AudioManager audioManager;
+    
+    private void Start()
+    {
+        movement = GetComponent<Movement>();
+        audioManager = GameObject.FindGameObjectWithTag("Audio").GetComponent<AudioManager>();
+    }
     // Update is called once per frame
     void Update()
     {
-        TugCheck();
+        
     }
 
-    void TugCheck()
+    public void getRoped()
     {
-        if (playerInside && Input.GetButtonDown("Submit"))
-        {
-            tugs++;
-            tugBar.value = tugs / neededTugs;
-            if (tugs >= neededTugs)
-            {
-                GetFished();
-            }
-        }
-    }
-
-    void GetFished()
-    {
-        ScoreManager.instance.AddScore(score);
-        Destroy(gameObject);
+        isRoped = true;
+        transform.GetChild(0).gameObject.SetActive(true);
+        movement.followsPlayer = true;
+        movement.speed *= 0.8f;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Player"))
+        if(collision.CompareTag("Player") && isRoped)
         {
-            playerInside = true;
-        }
-    }
-    private void OnTriggerExit2D(Collider2D collision)
-    {
-        if (collision.CompareTag("Player"))
-        {
-            playerInside = false;
+            BarrasHUD.instance.AdicionarValorPowerUp(score);
+            ScoreManager.instance.AddScore(score);
+            audioManager.PlaySndEffects(audioManager.pickupFish);
+            Destroy(gameObject);
         }
     }
 }

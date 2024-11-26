@@ -8,31 +8,54 @@ public class Health : MonoBehaviour
     public int health;
     public int valorPontos;
     public GameObject efeitoMorte;
+    public MenuPausa telaGameOver;
     public WaveManager waveManager;
+    [SerializeField] AudioManager audioManager;
+
+    private void Start()
+    {
+        audioManager = GameObject.FindGameObjectWithTag("Audio").GetComponent<AudioManager>();
+    }
 
     bool fishActive = false;
     public bool isPlayer = false;
+    private bool isInvulnerable = false;
     public void TakeDamage(int damage)
     {
-        health -= damage;
-        StartCoroutine(DamagedEffect());
-        if (health < 1)
+        if (!isInvulnerable)
         {
-            Instantiate(efeitoMorte, transform.position, Quaternion.identity);
-            ScoreManager.instance.AddScore(valorPontos);
-            if (!isPlayer)
+            health -= damage;
+            StartCoroutine(DamagedEffect());
+            
+            if (isPlayer)
             {
-                waveManager.ReduceEnemyCount();
-                fishActive = false;
+                BarrasHUD.instance.AtualizarBarraVida(health);
+                isInvulnerable=true;
+                StartCoroutine(EndInvulnerability());
+                audioManager.PlaySndEffects(audioManager.getHit);
             }
-            Destroy(gameObject);
+            if (health < 1)
+            {
+                Instantiate(efeitoMorte, transform.position, Quaternion.identity);
+                BarrasHUD.instance.AdicionarValorPowerUp(valorPontos);
+                ScoreManager.instance.AddScore(valorPontos);
+                if (!isPlayer)
+                {
+                    waveManager.ReduceEnemyCount();
+                    fishActive = false;
+                }
+                else
+                {
+                    telaGameOver.StartCoroutine("GameOverAppears");
+                }
+                audioManager.PlaySndEffects(audioManager.death);
+                Destroy(gameObject);
+            }
         }
-        
     }
 
     IEnumerator DamagedEffect()
     {
-        //FF1B21
         if (gameObject.GetComponent<SpriteRenderer>() != null)
         {
             SpriteRenderer sprite = gameObject.GetComponent<SpriteRenderer>();
@@ -41,6 +64,14 @@ public class Health : MonoBehaviour
             sprite.color = Color.white;
         }
     }
+
+    IEnumerator EndInvulnerability()
+    {
+        yield return new WaitForSeconds(0.625f);
+        isInvulnerable = false;
+    }
+
+
 
     private void OnBecameVisible()
     {

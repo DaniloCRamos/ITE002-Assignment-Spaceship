@@ -19,12 +19,13 @@ public class Movement : MonoBehaviour
     public bool entityWaves;
     public bool enemyEntity;
     public bool followsPlayer;
+    public bool isFish;
     public Transform posPlayer;
 
     private void Start()
     {
-        if(GameObject.FindGameObjectWithTag("Player") != null)
-        posPlayer = GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
+        if (GameObject.FindGameObjectWithTag("Player") != null)
+            posPlayer = GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
     }
     private void Update()
     {
@@ -80,7 +81,7 @@ public class Movement : MonoBehaviour
     //Adiciona movimento de curva para um lado a inimigos ou entidades.
     void TurningMovement()
     {
-        if (entityTurns && !entityWaves)
+        if (entityTurns && !entityWaves && !followsPlayer)
         {
             transform.Rotate(new Vector3(0, 0, 1), rotationSpeed * Time.deltaTime);
         }
@@ -89,7 +90,7 @@ public class Movement : MonoBehaviour
     //Adiciona movimento ondular a inimigos ou entidades.
     void WavingMovement()
     {
-        if (entityWaves)
+        if (entityWaves && !followsPlayer)
         {
             dirChangeTimer += Time.deltaTime;
             if (dirChangeTimer > dirChangeTime)
@@ -102,14 +103,14 @@ public class Movement : MonoBehaviour
     }
     void FollowsPlayer()
     {
-        if (posPlayer != null && followsPlayer && posPlayer.position.x < transform.position.x)
+        if (posPlayer != null && followsPlayer && (posPlayer.position.x < transform.position.x || isFish))
         {
             Vector3 rotation = transform.position - posPlayer.position;
             transform.position = Vector3.MoveTowards(transform.position, posPlayer.position, speed*Time.deltaTime);
             float fRotation = Mathf.Atan2(rotation.y, rotation.x) * Mathf.Rad2Deg;
             transform.rotation = Quaternion.Euler(0,0,fRotation);
         }
-        else
+        else if (followsPlayer)
         {
             posPlayer = null;
             transform.Translate(Time.deltaTime * speed * Vector3.left);

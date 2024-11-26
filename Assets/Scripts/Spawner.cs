@@ -6,7 +6,7 @@ using UnityEngine;
 public class Spawner : MonoBehaviour
 {
     [SerializeField] GameObject[] enemies;
-    public enum Entities { SWORDFISH, BJELLYFISH, PJELLYFISH, SHARK }
+    public enum Entities { SWORDFISH, BJELLYFISH, PJELLYFISH, SHARK, ANGLERFISH, REDFISH }
 
     [SerializeField] float[] tBeforeSpawn;
     public Entities[] entityTypes;

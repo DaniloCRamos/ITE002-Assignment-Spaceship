@@ -6,6 +6,7 @@ using UnityEngine;
 public class WaveManager : MonoBehaviour
 {
     public GameObject[] Waves;
+    [SerializeField] private MenuPausa menuPausa;
     public int wavesCount = 0;
     public int enemyCount = 0;
     
@@ -21,7 +22,7 @@ public class WaveManager : MonoBehaviour
     public void ProceedNextWave()
     {
         wavesCount++;
-        Waves[wavesCount-1].SetActive(false);        
+        Waves[wavesCount-1].SetActive(false);
         if (wavesCount < Waves.Length)
         {
             Waves[wavesCount - 1].SetActive(false);
@@ -29,6 +30,7 @@ public class WaveManager : MonoBehaviour
         }
         else
         {
+            menuPausa.StartCoroutine("EndGameAppears");
         }
     }
 }

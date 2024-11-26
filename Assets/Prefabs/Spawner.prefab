@@ -49,12 +49,14 @@ MonoBehaviour:
   - {fileID: 4915939215956953616, guid: a1676df03fa85c248bd5296c27050ced, type: 3}
   - {fileID: 1495559857462022196, guid: 5b5e89fc678f05a49bca842ad8d81896, type: 3}
   - {fileID: 1706069991154373160, guid: 4c491440e62d3814ca150727081bc6b6, type: 3}
+  - {fileID: 6230949391514776543, guid: 0a5b58e953438f642a31a74cdfcea806, type: 3}
+  - {fileID: 2736113341056018671, guid: af4ec9dd8d90b2f4982ac55d37abf5b3, type: 3}
   tBeforeSpawn:
   - 1
   entityTypes: 00000000
   speed:
   - 0.5
   rotationSpeed:
-  - 0
+  - 10
   dirChangeTime:
-  - 0
+  - 1.2

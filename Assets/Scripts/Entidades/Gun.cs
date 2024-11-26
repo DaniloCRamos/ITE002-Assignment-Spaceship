@@ -5,6 +5,12 @@ using UnityEngine;
 public class Gun : MonoBehaviour
 {
     public Projectile projectilePrefab;
+    public Projectile swordfish;
+    public Projectile ropeHarpoon;
+    public RopeController ropeController;
+    private SpriteRenderer sprite;
+    private Gun gun;
+    [SerializeField]private AudioManager audioManager;
     public int municao = 10;
     public int municaoMax = 10;
     public int damage = 1;
@@ -14,104 +20,103 @@ public class Gun : MonoBehaviour
 
     //Variáveis cronômetro
     private float autoTimer = 0f;
-    public float reloadSetTime;
-    private float reloadTimer = 0f;
-    private bool reloadTimerAtivo = false;
+    private float autoTime;
+    public float autoSetTime;
+    public float overchargeSetTime;
+    public float tEndSupercharge;
 
-    //void SwitchType()
-    //{
-    //    if (Input.GetButtonDown("Fire3"))
-    //    {
-    //        tiposTiro++;
-    //        if (tiposTiro > 2)
-    //        {
-    //            tiposTiro = 0;
-    //        }
-    //    }
-    //}
-
-    void FireProjectile()
+    private void Start()
     {
-        //Decide que tipo de tiro será feito
-        switch(tiposTiro)
-        {
-            case 0: SingleFire(); break;
-            case 1: AutoFire(); break;
-            case 2: SpreadFire(); break;
-        }
+        autoTime = autoSetTime;
+        sprite = GetComponent<SpriteRenderer>();
+        gun = GetComponent<Gun>();
+        audioManager = GameObject.FindGameObjectWithTag("Audio").GetComponent<AudioManager>();
     }
-
-    //void ReloadGun()
-    //{
-    //    //Esse if é para começar o recarregamento a partir do Input do jogador
-    //    if (Input.GetButtonDown("Fire2") && !reloadTimerAtivo)
-    //    {
-    //        reloadTimerAtivo = true;
-    //    }
-
-    //    //Esse if é para dar tempo antes de recarregar a arma
-    //    if (reloadTimerAtivo)
-    //    {
-    //        reloadTimer -= Time.deltaTime;
-    //        if (reloadTimer <= 0)
-    //        {
-    //            reloadTimer = reloadSetTime;
-    //            reloadTimerAtivo = false;
-    //            municao = municaoMax;
-    //        }
-
-    //    }
-    //}
+    private void Update()
+    {
+        AutoFire();
+        Jellyfish();
+        Swordfish();
+        RopeHarpoon();
+    }
 
     //Região de comportamento dos tipos de disparo
     #region Tipos de Tiro
 
-    //Método para tiro de disparo único
-    void SingleFire()
-    {
-        if (Input.GetButtonDown("Fire1") /*&& municao > 0 && !reloadTimerAtivo*/)
-        {
-            Projectile _projectile = Instantiate(projectilePrefab, transform.position, Quaternion.identity);
-            _projectile.damage = damage;
-            //municao--;
-        }
-    }
-
-    //Método para tiro de disparo automático
+    //Método para tiro primário
     void AutoFire()
     {
         autoTimer -= Time.deltaTime;
-        if (Input.GetButton("Fire1") /*&& municao > 0*/ && autoTimer <= 0 /*& !reloadTimerAtivo*/)
+        if (ropeHarpoon == null && Input.GetButton("Fire1") /*&& municao > 0*/ && autoTimer <= 0 /*& !reloadTimerAtivo*/)
         {
-            autoTimer = 0.175f;
-            Projectile _projectile = Instantiate(projectilePrefab, transform.position, Quaternion.identity);
-            _projectile.damage = damage; ;
-            //municao--;
+            autoTimer = autoTime;
+            DispararProjetil(projectilePrefab, damage);
         }
     }
 
-    //Método para tiro de disparo de dispersão
-    void SpreadFire()
+    void Swordfish()
     {
-        if (Input.GetButtonDown("Fire1") && municao > 2 && !reloadTimerAtivo)
+        if (ropeHarpoon == null && Input.GetButtonDown("Fire2") && BarrasHUD.instance.valorPU >= 150)
         {
-            Instantiate(projectilePrefab, transform.position, Quaternion.identity);
-            Instantiate(projectilePrefab, transform.position, Quaternion.Euler(new Vector3(0, 0, +20f)));
-            Instantiate(projectilePrefab, transform.position, Quaternion.Euler(new Vector3(0, 0, -20f)));
-            municao -= 3;
+            BarrasHUD.instance.ZerarPowerUp();
+            DispararProjetil(swordfish, 12, true);
+
+        }
+    }
+
+    void Jellyfish()
+    {
+        if (ropeHarpoon == null && Input.GetButtonDown("Fire3") && BarrasHUD.instance.valorPU >= 150)
+        {
+            BarrasHUD.instance.ZerarPowerUp();
+            autoTime = overchargeSetTime;
+            sprite.color = Color.yellow;
+            audioManager.PlaySndEffects(audioManager.powerUpFilled);
+            StartCoroutine(EndSupercharge());
+        }
+    }
+
+    void RopeHarpoon()
+    {
+        if (ropeHarpoon == null && Input.GetKeyDown(KeyCode.E) && autoTimer <= 0)
+        {
+            DispararProjetil(projectilePrefab, 1, true, 3.75f,ropeController, gun);
         }
     }
     #endregion
 
-    private void Start()
+    #region Sobrecargas de Disparo
+    void DispararProjetil(Projectile projectile, int damage)
     {
-        reloadTimer = reloadSetTime;
-    }
-    private void Update()
-    {
-        FireProjectile();
-        //ReloadGun();
-        //SwitchType();
+        Projectile _projectile = Instantiate(projectile, transform.position, Quaternion.identity);
+        _projectile.damage = damage;
+        audioManager.PlaySndEffects(audioManager.normalShoot);
     }
 
+    void DispararProjetil(Projectile projectile, int damage, bool unstopabble)
+    {
+        Projectile _projectile = Instantiate(projectile, transform.position, Quaternion.identity);
+        _projectile.damage = damage;
+        _projectile.unstopabble = true;
+        audioManager.PlaySndEffects(audioManager.swordShoot);
+    }
+
+    void DispararProjetil(Projectile projectile, int damage, bool roped, float speed, RopeController ropeController, Gun gunReference)
+    {
+        Projectile _projectile = Instantiate(projectile, transform.position, Quaternion.identity);
+        _projectile.damage = damage;
+        _projectile.speed = speed;
+        _projectile.roped = roped;
+        _projectile.ropeController = ropeController;
+        _projectile.gun = gunReference;
+        ropeController.points[1] = _projectile.transform;
+        ropeHarpoon = _projectile;
+    }
+    #endregion
+    IEnumerator EndSupercharge()
+    {
+        yield return new WaitForSeconds(tEndSupercharge);
+        sprite.color = Color.white;
+        autoTime = autoSetTime;
+    }
 }

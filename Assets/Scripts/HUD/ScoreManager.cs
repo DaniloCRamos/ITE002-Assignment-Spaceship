@@ -9,7 +9,7 @@ public class ScoreManager : MonoBehaviour
     public static ScoreManager instance;
 
     public TextMeshProUGUI scoreText;
-    int scoreCount = 0;
+    public int scoreCount = 0;
 
     private void Awake()
     {
@@ -25,5 +25,19 @@ public class ScoreManager : MonoBehaviour
     {
         scoreCount += pontuacao;
         scoreText.text = "Score: " + scoreCount.ToString();
+    }
+    public void HighscoreUpdate()
+    {
+        if (PlayerPrefs.HasKey("SavedHighscore"))
+        {
+            if (PlayerPrefs.GetInt("SavedHighscore") < scoreCount)
+            {
+                PlayerPrefs.SetInt("SavedHighscore", scoreCount);
+            }
+        }
+        else
+        {
+            PlayerPrefs.SetInt("SavedHighscore", scoreCount);
+        }
     }
 }
